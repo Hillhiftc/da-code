@@ -2,10 +2,10 @@
 #pragma config(Hubs,  S2, HTServo,  none,     none,     none)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     ,               sensorI2CMuxController)
-#pragma config(Motor,  mtr_S1_C1_1,     Wheel1,        tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C1_2,     Wheel2,        tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_1,     Wheel3,        tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C2_2,     Wheel4,        tmotorTetrix, openLoop)
+#pragma config(Motor,  mtr_S1_C1_1,     Wheel1,        tmotorTetrix, openLoop, reversed)
+#pragma config(Motor,  mtr_S1_C1_2,     Wheel2,        tmotorTetrix, openLoop, reversed)
+#pragma config(Motor,  mtr_S1_C2_1,     Wheel3,        tmotorTetrix, openLoop, reversed)
+#pragma config(Motor,  mtr_S1_C2_2,     Wheel4,        tmotorTetrix, openLoop, reversed)
 #pragma config(Servo,  srvo_S2_C1_1,    W2Servo,              tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_2,    W1Servo,              tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_3,    W3Servo,              tServoStandard)
@@ -19,44 +19,59 @@ task main()
 {
 	int y1;
 	int y2;
-	int Side;				//Let us know which direction the wheels are facing
+	int Turning;				//Let us know whether the wheels are in point turning mode
 	while(true)
+
 	{
 		getJoystickSettings(joystick);
 
+		bFloatDuringInactiveMotorPWM = false;
 		y1 = joystick.joy1_y1;
 		y2 = joystick.joy1_y2;
 
-		if(joystick.joy1_TopHat == 0)   //Top D-Pad turn all wheels forward
+		if(joystick.joy1_Buttons == 8)   //Button 4 turn all wheels forward
 		{
 			servo[W2Servo] = 60;
 			servo[W1Servo] = 75;
 			servo[W3Servo] = 75;
 			servo[W4Servo] = 60;
 
-			Side = 0;
+			Turning = 0;
 		}
-		if(joystick.joy1_TopHat == 4)		//Bottom D-Pad turn all wheels Left
+		if(joystick.joy1_Buttons == 1)		//Button 1 turn all wheels Left
 		{
 		servo[W2Servo] = 175;
 		servo[W1Servo] = 200;
 		servo[W3Servo] = 195;
 		servo[W4Servo] = 185;
 
-			Side = 4;
+			Turning = 0;
 		}
-		if(joystick.joy1_TopHat == 2)
+		if(joystick.joy1_Buttons == 4)		//Button 3 turns all wheels to prepare for point turning
 		{
 			servo[W2Servo] = 120;
 			servo[W1Servo] = 25;
 			servo[W3Servo] = 130;
 			servo[W4Servo] = 250;
-		}
 
-			motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-			motor[Wheel2] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-			motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-			motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			Turning = 1;
+		}
+			if(Turning == 0)
+			{
+				motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Wheel2] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			}
+
+			if(Turning == 1)						//While in point turning mode, reverse the 2nd wheel to make it go same direction with the rest of the wheels
+			{
+				motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Wheel2] =	-(y1 < -10? y1 : y1 > 10? y1 : 0);
+				motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			}
+
 
 
 
