@@ -2,6 +2,7 @@
 #pragma config(Hubs,  S2, HTServo,  none,     none,     none)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     ,               sensorI2CMuxController)
+#pragma config(Motor,  motorA,          Claw,          tmotorNXT, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     Wheel1,        tmotorTetrix, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C1_2,     Wheel2,        tmotorTetrix, openLoop, reversed)
 #pragma config(Motor,  mtr_S1_C2_1,     Wheel3,        tmotorTetrix, openLoop, reversed)
@@ -19,6 +20,14 @@ task main()
 {
 	int y1;
 	int y2;
+	int x2;
+
+	//int serv1 = servo[W1Servo];
+	//int serv2 = servo[W2Servo];
+	//int serv3 = servo[W3Servo];
+	//int serv4 = servo[W4Servo];
+
+
 	int Turning;				//Let us know whether the wheels are in point turning mode
 	while(true)
 
@@ -29,6 +38,7 @@ task main()
 		y1 = joystick.joy1_y1;
 		y2 = joystick.joy1_y2;
 
+		x2 = joystick.joy1_x2;
 		if(joystick.joy1_Buttons == 8)   //Button 4 turn all wheels forward
 		{
 			servo[W2Servo] = 60;
@@ -40,12 +50,32 @@ task main()
 		}
 		if(joystick.joy1_Buttons == 1)		//Button 1 turn all wheels Left
 		{
-		servo[W2Servo] = 175;
-		servo[W1Servo] = 200;
-		servo[W3Servo] = 195;
-		servo[W4Servo] = 185;
+			servo[W2Servo] = 175;
+			servo[W1Servo] = 200;
+			servo[W3Servo] = 195;
+			servo[W4Servo] = 185;
 
 			Turning = 0;
+		}
+		if(joy1Btn(5) == 1)
+		{
+			servo[W2Servo] = 125; 	//wheel 4 wheel2
+			servo[W1Servo] = 140;
+			servo[W3Servo] = 135;
+			servo[W4Servo] = 125;
+			//servo[W2Servo] = 225;
+			//servo[W1Servo] = 250;
+			//servo[W3Servo] = 250;
+			//servo[W4Servo] = 240;
+			Turning = 2;
+		}
+		if(joy1Btn(6) == 1)
+		{
+			servo[W2Servo] = 5;
+			servo[W1Servo] = 15;
+			servo[W3Servo] = 15;
+			servo[W4Servo] = 0;
+			Turning = 2;
 		}
 		if(joystick.joy1_Buttons == 4)		//Button 3 turns all wheels to prepare for point turning
 		{
@@ -56,21 +86,78 @@ task main()
 
 			Turning = 1;
 		}
-			if(Turning == 0)
+		if(Turning == 0)
+		{
+			motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel2] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+		}
+
+		if(Turning == 1)						//While in point turning mode, reverse the 2nd wheel to make it go same direction with the rest of the wheels
+		{
+			motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel2] =	-(y1 < -10? y1 : y1 > 10? y1 : 0);
+			motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+		}
+		if(Turning == 2)
+		{
+			motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel2] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+			motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+		}
+
+		if(time1[T1] >= 5)
+		{
+			if(x2 < -10 && servo[W2Servo] <= 225 && servo[W1Servo] <= 250 && servo[W3Servo] <= 250 && servo[W4Servo] <= 240)
 			{
-				motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-				motor[Wheel2] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-				motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-				motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				servo[W2Servo] += 1;
+				servo[W1Servo] += 1;
+				servo[W3Servo] += 1;
+				servo[W4Servo] += 1;
+				ClearTimer(T1);
+			}
+			else if(x2 > 10 && servo[W2Servo] >= 5 && servo[W1Servo] >= 15 && servo[W3Servo] >= 15 && servo[W4Servo] >= 0)
+			{
+				servo[W2Servo] -= 1;
+				servo[W1Servo] -= 1;
+				servo[W3Servo] -= 1;
+				servo[W4Servo] -= 1;
+
+				ClearTimer(T1);
 			}
 
-			if(Turning == 1)						//While in point turning mode, reverse the 2nd wheel to make it go same direction with the rest of the wheels
+			//if(time1[T2] >= 200)
+			//{
+			//	writeDebugStreamLine("Servo 1: %n", serv1);
+			//	writeDebugStreamLine("Servo 2: %n", serv2);
+			//	writeDebugStreamLine("Servo 3: %n", serv3);
+			//	writeDebugStreamLine("Servo 4: %n", serv4);
+			//	ClearTimer(T2);
+			//}
+			if(joy1Btn(7) == 1)
 			{
-				motor[Wheel1] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-				motor[Wheel2] =	-(y1 < -10? y1 : y1 > 10? y1 : 0);
-				motor[Wheel3] =	y1 < -10? y1 : y1 > 10? y1 : 0;
-				motor[Wheel4] =	y1 < -10? y1 : y1 > 10? y1 : 0;
+				motor[Claw] = 20;
 			}
+			else if(joy1Btn(8) == 1)
+			{
+				motor[Claw] = -20;
+			}
+
+			else	if(joy1Btn(7) == 0)
+			{
+				motor[Claw] = 0;
+			}
+			else if(joy1Btn(8) == 0)
+			{
+				motor[Claw] = 0;
+			}
+
+
+
+		}
 
 
 

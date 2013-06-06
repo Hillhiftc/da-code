@@ -18,9 +18,9 @@ task main()
 {
 	while(true)
 	{
-			servo[W2Servo] = 120;
-			servo[W1Servo] = 25;
-			servo[W3Servo] = 130;
+			servo[W2Servo] = 235;
+			servo[W1Servo] = 15;
+			servo[W3Servo] = 15;
 			servo[W4Servo] = 250;
 	}
 
